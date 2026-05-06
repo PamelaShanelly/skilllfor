@@ -41,12 +41,23 @@ export default function Admin({ user }: AdminProps) {
       const fetchedMessages: ContactMessage[] = [];
       messagesSnap.forEach((doc) => {
         const data = doc.data();
+        let timestampStr = new Date().toISOString();
+        try {
+          if (data.timestamp?.toDate) {
+            timestampStr = data.timestamp.toDate().toISOString();
+          } else if (data.timestamp) {
+            timestampStr = new Date(data.timestamp).toISOString();
+          }
+        } catch (e) {
+          console.error("Timestamp error", e);
+        }
+
         fetchedMessages.push({
           id: doc.id,
-          name: data.name,
-          email: data.email,
-          message: data.message,
-          timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : data.timestamp
+          name: data.name || 'Usuario Anónimo',
+          email: data.email || 'N/A',
+          message: data.message || '',
+          timestamp: timestampStr
         });
       });
       setMessages(fetchedMessages);
@@ -76,8 +87,8 @@ export default function Admin({ user }: AdminProps) {
   }
 
   const filteredUsers = usersList.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
+    (u.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   const stats = [

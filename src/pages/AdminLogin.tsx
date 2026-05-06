@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { recordAuditLog } from '../lib/loggingUtils';
 import { ShieldCheck, Mail, Lock, ArrowRight, Server, Globe } from 'lucide-react';
 import { User } from '../types';
@@ -31,38 +31,58 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
       const hardcodedAdmins = ['pamelapayanocaceres@gmail.com', 'pamela.payano@skillfor.edu.do'];
       
-      if (userDoc.exists()) {
-        const data = userDoc.data() as User;
-        const isForcedAdmin = hardcodedAdmins.includes(email.toLowerCase());
+        let data: User;
         
-        if (data.role !== 'admin' && !isForcedAdmin) {
-          await auth.signOut();
-          setError('Acceso denegado: Esta cuenta no tiene privilegios de administrador.');
-          setIsLoading(false);
-          return;
-        }
+        if (userDoc.exists()) {
+          data = userDoc.data() as User;
+          const isForcedAdmin = hardcodedAdmins.includes(email.toLowerCase());
+          
+          if (data.role !== 'admin' && !isForcedAdmin) {
+            await auth.signOut();
+            setError('Acceso denegado: Esta cuenta no tiene privilegios de administrador.');
+            setIsLoading(false);
+            return;
+          }
 
-        // Auto-update role if they are forced admin but not marked in DB
-        if (isForcedAdmin && data.role !== 'admin') {
-          await updateDoc(doc(db, 'users', firebaseUser.uid), {
-            role: 'admin'
-          });
-          data.role = 'admin';
+          // Auto-update role if they are forced admin but not marked in DB
+          if (isForcedAdmin && data.role !== 'admin') {
+            await updateDoc(doc(db, 'users', firebaseUser.uid), {
+              role: 'admin'
+            });
+            data.role = 'admin';
+          }
+        } else {
+          // If for some reason the doc doesn't exist but they are a hardcoded admin, create it
+          const isForcedAdmin = hardcodedAdmins.includes(email.toLowerCase());
+          if (isForcedAdmin) {
+            data = {
+              id: firebaseUser.uid,
+              name: 'Administrador SkillFor',
+              email: email.toLowerCase(),
+              role: 'admin',
+              courses: [],
+              lastLogin: serverTimestamp(),
+              createdAt: serverTimestamp()
+            } as any;
+            
+            await setDoc(doc(db, 'users', firebaseUser.uid), data);
+          } else {
+            await auth.signOut();
+            setError('No se encontró el perfil administrativo.');
+            await recordAuditLog('ADMIN_LOGIN_FAILURE', `Admin ${email} profile not found`, 'failure');
+            setIsLoading(false);
+            return;
+          }
         }
 
         await updateDoc(doc(db, 'users', firebaseUser.uid), {
           lastLogin: serverTimestamp()
         });
 
-        await recordAuditLog('ADMIN_LOGIN', `Admin ${email} logged in successfully`);
+        await recordAuditLog('ADMIN_LOGIN_SUCCESS', `Admin ${email} logged in successfully`);
 
         onLogin(data);
         navigate('/admin');
-      } else {
-        await auth.signOut();
-        setError('No se encontró el perfil administrativo.');
-        await recordAuditLog('ADMIN_LOGIN_FAILURE', `Admin ${email} profile not found`, 'failure');
-      }
     } catch (err: any) {
       await recordAuditLog('ADMIN_LOGIN_FAILURE', `Admin login failed for ${email}: ${err.message}`, 'failure');
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
