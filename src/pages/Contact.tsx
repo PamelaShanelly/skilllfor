@@ -3,7 +3,11 @@ import { motion } from 'motion/react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
-import { Mail, Phone, MapPin, Send, MessageSquare, Camera, MessageCircle, Share2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare, Camera, MessageCircle, Share2, Info } from 'lucide-react';
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+
+const API_KEY = process.env.GOOGLE_MAPS_PLATFORM_KEY || '';
+const hasValidKey = Boolean(API_KEY) && API_KEY !== 'YOUR_API_KEY';
 
 export default function Contact() {
   const [formData, setFormData] = React.useState({
@@ -13,6 +17,8 @@ export default function Contact() {
   });
   const [isSent, setIsSent] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const center = { lat: 18.6191, lng: -68.7188 };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +47,7 @@ export default function Contact() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
           {/* Contact Info */}
           <div className="space-y-8">
             <div className="bg-white dark:bg-gray-900 p-10 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5">
@@ -168,6 +174,42 @@ export default function Contact() {
                   {isLoading ? "Enviando..." : "Enviar Mensaje Directo"}
                 </button>
               </form>
+            )}
+          </div>
+        </div>
+
+        {/* Google Map Section */}
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-[40px] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
+          <div className="flex items-center gap-4 mb-6 ml-4">
+            <div className="bg-petroleo/10 dark:bg-brand-accent/20 p-3 rounded-xl text-petroleo dark:text-brand-accent">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <h2 className="font-display font-bold text-2xl dark:text-white">Nuestra Ubicación</h2>
+          </div>
+          
+          <div className="h-[450px] w-full rounded-[30px] overflow-hidden border border-gray-100 dark:border-white/5 bg-gray-100 dark:bg-gray-800 relative">
+            {!hasValidKey ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                <Info className="w-12 h-12 text-blue-500 mb-4 animate-pulse" />
+                <h3 className="text-xl font-bold dark:text-white mb-2 uppercase">Configuración de Mapa Requerida</h3>
+                <p className="text-gray-500 max-w-md text-sm italic">
+                  Para visualizar el mapa interactivo, por favor configura la clave <code className="bg-gray-200 dark:bg-white/10 px-2 py-1 rounded">GOOGLE_MAPS_PLATFORM_KEY</code> en los Secretos de AI Studio.
+                </p>
+              </div>
+            ) : (
+              <APIProvider apiKey={API_KEY} version="weekly">
+                <Map
+                  defaultCenter={center}
+                  defaultZoom={16}
+                  mapId="SKILLFOR_MAP"
+                  internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <AdvancedMarker position={center} title="Politécnico Virgen de la Altagracia">
+                    <Pin background="#C8A15E" glyphColor="#fff" borderColor="#1E2A34" />
+                  </AdvancedMarker>
+                </Map>
+              </APIProvider>
             )}
           </div>
         </div>

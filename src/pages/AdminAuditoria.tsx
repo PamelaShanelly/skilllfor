@@ -138,8 +138,8 @@ export default function AdminAuditoria({ user }: { user: User | null }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 no-print">
           {[
             { label: 'Total Acciones', val: logs.length, icon: Activity, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-            { label: 'Inicios de Sesión', val: logs.filter(l => l.action === 'LOGIN_SUCCESS').length, icon: UserIcon, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
-            { label: 'Fallos Detectados', val: logs.filter(l => l.status === 'FELLED').length, icon: Info, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' },
+            { label: 'Inicios de Sesión', val: logs.filter(l => l.action.includes('LOGIN')).length, icon: UserIcon, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20' },
+            { label: 'Fallos Detectados', val: logs.filter(l => l.status === 'failure').length, icon: Info, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20' },
             { label: 'Usuarios Únicos', val: new Set(logs.map(l => l.userId)).size, icon: Shield, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20' },
           ].map((stat, i) => (
             <motion.div 
@@ -183,8 +183,8 @@ export default function AdminAuditoria({ user }: { user: User | null }) {
                   onChange={(e) => setFilterAction(e.target.value)}
                 >
                   <option value="ALL">Todos los Estados</option>
-                  <option value="COMPLETED">Completados</option>
-                  <option value="FELLED">Fallidos</option>
+                  <option value="success">Exitosos</option>
+                  <option value="failure">Fallidos</option>
                 </select>
               </div>
               <Link to="/admin" className="px-6 py-4 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-2xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-white/10 transition-all">
@@ -239,7 +239,7 @@ export default function AdminAuditoria({ user }: { user: User | null }) {
                       <td className="px-6 py-6">
                         <div className="flex items-center gap-4">
                           <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-tighter ${
-                            log.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            log.status === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                           }`}>
                             {log.status}
                           </div>
