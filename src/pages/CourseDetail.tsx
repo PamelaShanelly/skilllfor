@@ -259,11 +259,11 @@ export default function CourseDetail({ user, setUser, isDarkMode, setIsDarkMode 
     });
 
     setExamReview(review);
-
+    
+    let score = 0;
     if (isLessonExam) {
-      // Lesson Exam Submission
       const lessonQuestions = activeLesson?.lessonExam || [];
-      const score = lessonQuestions.length ? Math.round((correctCount / lessonQuestions.length) * 100) : 0;
+      score = lessonQuestions.length ? Math.round((correctCount / lessonQuestions.length) * 100) : 0;
       
       if (score >= 70 && !completedExams.includes(activeLesson!.id)) {
         const newCompletedExams = [...completedExams, activeLesson!.id];
@@ -294,13 +294,27 @@ export default function CourseDetail({ user, setUser, isDarkMode, setIsDarkMode 
       setFinalScore(score);
       setExamCompleted(true);
       setIsSubmittingExam(false);
+
+      // Pass/Fail notification
+      if (score >= 70) {
+        alert("¡EXAMEN PASADO! Felicidades, has superado este módulo.");
+      } else {
+        alert(`NO PASASTE EL EXAMEN. Tu puntuación fue de ${score}%. Necesitas al menos 70%.`);
+      }
       return;
     }
 
-    const score = course.finalExam?.length ? Math.round((correctCount / course.finalExam.length) * 100) : 0;
+    score = course.finalExam?.length ? Math.round((correctCount / course.finalExam.length) * 100) : 0;
     setFinalScore(score);
     setExamCompleted(true);
     setIsSubmittingExam(false);
+
+    // Pass/Fail notification
+    if (score >= 70) {
+      alert("¡HAS COMPLETADO EL CURSO! Examen final aprobado.");
+    } else {
+      alert(`EXAMEN FINAL REPROBADO. Obtuviste ${score}%. Inténtalo de nuevo tras repasar los módulos.`);
+    }
 
     // Update user state
     const newProgress = calculateTotalProgress([...completedModules, ...completedTasks], true);
@@ -1230,9 +1244,18 @@ export default function CourseDetail({ user, setUser, isDarkMode, setIsDarkMode 
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white dark:bg-gray-900 rounded-[50px] p-12 md:p-20 shadow-2xl text-center border border-gray-100 dark:border-white/5"
                 >
-                  <div className="w-32 h-32 bg-hueso dark:bg-black rounded-[40px] flex items-center justify-center mb-10 mx-auto border-4 border-white dark:border-white/10 shadow-xl">
+                  <div className="w-32 h-32 bg-hueso dark:bg-black rounded-[40px] flex items-center justify-center mb-6 mx-auto border-4 border-white dark:border-white/10 shadow-xl">
                     <Award className={`w-16 h-16 ${ (finalScore || enrolledCourse.examScore || 0) >= 70 ? 'text-green-500' : 'text-red-500' }`} />
                   </div>
+                  
+                  <div className={`inline-block px-10 py-3 rounded-full mb-8 font-black text-xl uppercase tracking-[0.3em] ${
+                    (finalScore || enrolledCourse.examScore || 0) >= 70 
+                      ? 'bg-green-500/10 text-green-500 border-2 border-green-500/20' 
+                      : 'bg-red-500/10 text-red-500 border-2 border-red-500/20'
+                  }`}>
+                    {(finalScore || enrolledCourse.examScore || 0) >= 70 ? '¡APROBADO!' : 'REPROBADO'}
+                  </div>
+
                   <h3 className="text-4xl font-display font-bold text-petroleo dark:text-white mb-4">
                     {isLessonExam ? `Resultado de Lección ${currentLessonIdx + 1}` : 'Resultado del Examen General'}
                   </h3>

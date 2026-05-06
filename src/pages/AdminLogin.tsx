@@ -29,13 +29,25 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
       const firebaseUser = userCredential.user;
 
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      const hardcodedAdmins = ['pamelapayanocaceres@gmail.com', 'pamela.payano@skillfor.edu.do'];
+      
       if (userDoc.exists()) {
         const data = userDoc.data() as User;
-        if (data.role !== 'admin') {
+        const isForcedAdmin = hardcodedAdmins.includes(email.toLowerCase());
+        
+        if (data.role !== 'admin' && !isForcedAdmin) {
           await auth.signOut();
           setError('Acceso denegado: Esta cuenta no tiene privilegios de administrador.');
           setIsLoading(false);
           return;
+        }
+
+        // Auto-update role if they are forced admin but not marked in DB
+        if (isForcedAdmin && data.role !== 'admin') {
+          await updateDoc(doc(db, 'users', firebaseUser.uid), {
+            role: 'admin'
+          });
+          data.role = 'admin';
         }
 
         await updateDoc(doc(db, 'users', firebaseUser.uid), {
@@ -64,24 +76,24 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-accent/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-petroleo/40 rounded-full blur-[120px]"></div>
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-accent/5 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/[0.02] rounded-full blur-[120px]"></div>
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-gray-900/50 backdrop-blur-xl border border-white/10 rounded-[40px] p-10 relative z-10 shadow-2xl"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md w-full bg-black/60 backdrop-blur-3xl border border-white/5 rounded-[50px] p-12 relative z-10 shadow-[0_50px_100px_rgba(0,0,0,1)]"
       >
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-brand-accent/20 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-brand-accent/30 shadow-[0_0_20px_rgba(255,204,41,0.2)]">
-            <ShieldCheck className="w-10 h-10 text-brand-accent" />
+        <div className="text-center mb-12">
+          <div className="w-24 h-24 bg-gradient-to-br from-gray-900 to-black rounded-[35px] flex items-center justify-center mx-auto mb-8 border border-white/10 shadow-[0_0_30px_rgba(140,140,140,0.1)] group transition-transform hover:scale-105">
+            <ShieldCheck className="w-12 h-12 text-brand-accent" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-white mb-2 uppercase tracking-tighter">Acceso Central</h1>
-          <p className="text-gray-500 text-sm font-bold uppercase tracking-widest leading-none">Administración SkillFor</p>
+          <h1 className="text-4xl font-display font-black text-white mb-2 uppercase tracking-tighter italic">Auth Core</h1>
+          <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.5em] leading-none">Security Level: 10</p>
         </div>
 
         {error && (
