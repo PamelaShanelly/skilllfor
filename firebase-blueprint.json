@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and enrollment data",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "profilePic": { "type": "string" },
+        "bio": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "courses": {
+          "type": "array",
+          "items": { "$ref": "#/entities/RegisteredCourse" }
+        }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "RegisteredCourse": {
+      "title": "RegisteredCourse",
+      "description": "Information about a course a user is enrolled in",
+      "type": "object",
+      "properties": {
+        "courseId": { "type": "string" },
+        "progress": { "type": "number" },
+        "grades": { "type": "object" },
+        "status": { "type": "string", "enum": ["enrolled", "completed"] },
+        "completedModules": { "type": "array", "items": { "type": "string" } },
+        "completedTasks": { "type": "array", "items": { "type": "string" } },
+        "completedExams": { "type": "array", "items": { "type": "string" } },
+        "examScore": { "type": "number" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "completionDate": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Inquiry sent via contact form",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message", "timestamp"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Admin audit trail log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "ip": { "type": "string" },
+        "device": { "type": "string" }
+      },
+      "required": ["action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/admins/{adminId}": {
+      "schema": { "type": "object", "properties": { "userId": { "type": "string" } } },
+      "description": "Admin privileges mapping"
+    },
+    "/messages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "Contact form submissions"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System audit logs"
+    }
+  }
+}

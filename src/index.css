@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-petroleo: #044a47;
+  --color-petroleo-light: #1a5d4d;
+  --color-hueso: #fdfbf7;
+  --color-accent: #2e7d32;
+  
+  --color-brand-primary: var(--color-petroleo);
+  --color-brand-secondary: var(--color-petroleo-light);
+  --color-brand-accent: var(--color-accent);
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-hueso transition-colors duration-300;
+  }
+}
+
+.dark body,
+body.dark,
+.dark {
+  @apply bg-gray-950 text-gray-100;
+}
+
+@layer components {
+  .nav-card-icon {
+    @apply flex flex-col items-center justify-center p-4 bg-petroleo text-white rounded-lg hover:bg-petroleo-light transition-all aspect-square w-24 gap-2;
+  }
+}
+
+@layer utilities {
+  .no-print {
+    @media print {
+      display: none !important;
+    }
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 dark:bg-gray-800 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-300 dark:bg-gray-700;
+  }
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  @apply font-display font-bold text-petroleo dark:text-white mt-8 mb-4;
+}
+
+.markdown-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-content ul {
+  @apply list-disc pl-6 mb-6 space-y-2;
+}
+
+.markdown-content li {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.markdown-content strong {
+  @apply text-brand-accent font-bold;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-brand-accent pl-4 italic my-6 text-gray-500 dark:text-gray-400;
+}
+
+
