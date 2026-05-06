@@ -69,6 +69,10 @@ export default function Register({ onLogin }: RegisterProps) {
       await recordAuditLog('REGISTER_FAILURE', `Registration failed for ${formData.email}: ${err.message}`, 'failure');
       if (err.code === 'auth/email-already-in-use') {
         setError('El correo ya está registrado.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('Este dominio no está autorizado en Firebase. Añade skillfor1.vercel.app a los dominios autorizados en la Consola de Firebase.');
+      } else if (err.message?.includes('400')) {
+        setError('Error de configuración (400). Verifica dominios autorizados y métodos de autenticación en Firebase.');
       } else {
         setError(err.message || 'Error al registrarse');
       }

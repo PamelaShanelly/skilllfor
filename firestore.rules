@@ -46,8 +46,10 @@ service cloud.firestore {
              (!('courses' in data) || data.courses is list) &&
              (!('profilePic' in data) || data.profilePic is string) &&
              (!('bio' in data) || data.bio is string) &&
-             (!('createdAt' in data) || data.createdAt == request.time) &&
-             (!('lastLogin' in data) || data.lastLogin == request.time);
+             // In create: must be request.time. In update: must be immutable (same as existing)
+             (!('createdAt' in data) || (resource == null ? data.createdAt == request.time : data.createdAt == resource.data.createdAt)) &&
+             // lastLogin should be updated to request.time on login, but we allow flexibility
+             (!('lastLogin' in data) || (data.lastLogin == request.time || (resource != null && data.lastLogin == resource.data.lastLogin)));
     }
 
     function isValidMessage(data) {
@@ -60,9 +62,9 @@ service cloud.firestore {
     }
 
     function isValidAuditLog(data) {
-      return data.keys().hasAll(['action', 'timestamp']) &&
+      return data.keys().hasAll(['action']) &&
              data.action is string && data.action.size() <= 100 &&
-             (data.timestamp == request.time || data.timestamp is string) &&
+             (!('timestamp' in data) || (data.timestamp == request.time || data.timestamp is string)) &&
              (!('userId' in data) || data.userId is string) &&
              (!('userEmail' in data) || data.userEmail is string) &&
              (!('details' in data) || data.details is string) &&

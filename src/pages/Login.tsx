@@ -76,6 +76,10 @@ export default function Login({ onLogin }: LoginProps) {
       } else {
         if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
           setError('Información incorrecta. Los datos no coinciden.');
+        } else if (err.code === 'auth/unauthorized-domain') {
+          setError('Este dominio no está autorizado en Firebase. Por favor, añade skillfor1.vercel.app a los dominios autorizados en la Consola de Firebase.');
+        } else if (err.message?.includes('400')) {
+          setError('Error de configuración (400). Verifica que el dominio esté autorizado y que los métodos de inicio de sesión estén activados en Firebase.');
         } else {
           setError(err.message || 'Error de conexión');
         }
